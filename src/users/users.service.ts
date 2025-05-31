@@ -56,7 +56,16 @@ export class UsersService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async remove(id: string) {
+    try {
+      const deletedUser = await this.userModel.deleteOne({ _id: id });
+      if (!deletedUser) {
+        return 'User not found';
+      }
+
+      return 'User deleted successfully';
+    }catch (error) {
+      return 'Error deleting user';
+    }
   }
 }
