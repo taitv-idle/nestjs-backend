@@ -40,8 +40,20 @@ export class UsersService {
     }
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: string, updateUserDto: UpdateUserDto) {
+    try {
+      const updatedUser = await this.userModel.updateOne({_id: id}, {
+        ...updateUserDto,
+      });
+
+      if (!updatedUser) {
+        return 'User not found';
+      }
+
+      return updatedUser;
+    } catch (error) {
+      return 'Error updating user';
+    }
   }
 
   remove(id: number) {

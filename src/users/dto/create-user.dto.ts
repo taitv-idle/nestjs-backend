@@ -10,6 +10,5 @@ export class CreateUserDto {
   @Max(16, { message: 'Password không được quá 16 ký tự' })
   password: string;
 
-  @IsNotEmpty({ message: 'Name Không đc để trống' })
   name: string;
 }
