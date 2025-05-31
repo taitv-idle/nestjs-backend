@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, Max, Min } from 'class-validator';
+import { IsEmail, IsNotEmpty, MaxLength, MinLength } from 'class-validator';
 
 export class CreateUserDto {
   @IsEmail({}, { message: 'Email Không hợp lệ' })
@@ -6,8 +6,8 @@ export class CreateUserDto {
   email: string;
 
   @IsNotEmpty({ message: 'Password Không đc để trống' })
-  @Min(8, { message: 'Password phải có ít nhất 8 ký tự' })
-  @Max(16, { message: 'Password không được quá 16 ký tự' })
+  @MinLength(6, { message: 'Password phải có ít nhất 6 ký tự' })
+  @MaxLength(16, { message: 'Password không được quá 16 ký tự' })
   password: string;
 
   name: string;
