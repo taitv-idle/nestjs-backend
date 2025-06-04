@@ -40,11 +40,24 @@ export class UsersService {
     }
   }
 
+  async findOneByUsername(username: string) {
+    try {
+      return this.userModel.findOne({
+        email: username,
+      });
+    } catch (error) {
+      return 'User not found';
+    }
+  }
+
   async update(id: string, updateUserDto: UpdateUserDto) {
     try {
-      const updatedUser = await this.userModel.updateOne({_id: id}, {
-        ...updateUserDto,
-      });
+      const updatedUser = await this.userModel.updateOne(
+        { _id: id },
+        {
+          ...updateUserDto,
+        },
+      );
 
       if (!updatedUser) {
         return 'User not found';
@@ -64,7 +77,7 @@ export class UsersService {
       }
 
       return 'User deleted successfully';
-    }catch (error) {
+    } catch (error) {
       return 'Error deleting user';
     }
   }
