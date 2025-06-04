@@ -4,7 +4,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
-import { genSaltSync, hashSync } from 'bcryptjs';
+import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
@@ -46,7 +46,15 @@ export class UsersService {
         email: username,
       });
     } catch (error) {
-      return 'User not found';
+      return error.message;
+    }
+  }
+
+  isValidPassword(password: string, hashPassword: string) {
+    try {
+      return compareSync(password, hashPassword);
+    } catch (error) {
+      return 'Error checking password';
     }
   }
 
