@@ -8,9 +8,6 @@ import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
-    // MongooseModule.forRoot(
-    //   'mongodb+srv://devtaitv:19831985%40Tai%21@devtaitv.dagpmqv.mongodb.net/',
-    // )
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
