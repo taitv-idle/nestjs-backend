@@ -10,7 +10,7 @@ import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 export class UsersService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
-  getHashPassword = (password) => {
+  getHashPassword = (password: string) => {
     const salt = genSaltSync(10);
     const hash = hashSync(password, salt);
     return hash;
