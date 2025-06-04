@@ -17,12 +17,22 @@ export class UsersService {
   };
 
   async create(createUserDto: CreateUserDto) {
-    const hashPassword = this.getHashPassword(createUserDto.password);
-    const newUser = await this.userModel.create({
-      ...createUserDto,
-      password: hashPassword,
-    });
-    return newUser;
+    try {
+      const existingUser = await this.userModel.findOne({
+        email: createUserDto.email,
+      });
+      if (existingUser) {
+        throw new Error('Email already exists');
+      }
+      const hashPassword = this.getHashPassword(createUserDto.password);
+      const newUser = await this.userModel.create({
+        ...createUserDto,
+        password: hashPassword,
+      });
+      return newUser;
+    } catch {
+      throw new Error('Error creating user');
+    }
   }
 
   findAll() {
@@ -35,7 +45,7 @@ export class UsersService {
         _id: id,
       });
       return user;
-    } catch (error) {
+    } catch {
       return 'User not found';
     }
   }
@@ -45,15 +55,15 @@ export class UsersService {
       return this.userModel.findOne({
         email: username,
       });
-    } catch (error) {
-      return error.message;
+    } catch {
+      return null;
     }
   }
 
   isValidPassword(password: string, hashPassword: string) {
     try {
       return compareSync(password, hashPassword);
-    } catch (error) {
+    } catch {
       return 'Error checking password';
     }
   }
@@ -72,7 +82,7 @@ export class UsersService {
       }
 
       return updatedUser;
-    } catch (error) {
+    } catch {
       return 'Error updating user';
     }
   }
@@ -85,7 +95,7 @@ export class UsersService {
       }
 
       return 'User deleted successfully';
-    } catch (error) {
+    } catch {
       return 'Error deleting user';
     }
   }
