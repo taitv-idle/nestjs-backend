@@ -62,7 +62,45 @@ export class CompaniesService {
     }
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} company`;
+  async remove(id: string, user: IUser) {
+    try {
+      const company = await this.companyModel.findById(id);
+      if (!company) {
+        return {
+          statusCode: 404,
+          message: 'Company not found',
+        };
+      }
+
+      const deletedCompany = await this.companyModel.softDelete({ _id: id });
+
+      await this.companyModel.updateOne(
+        { _id: id },
+        {
+          deletedBy: {
+            _id: user._id,
+            email: user.email,
+          },
+        },
+      );
+
+      if (!deletedCompany) {
+        return {
+          statusCode: 400,
+          message: 'Error deleting company',
+        };
+      }
+
+      return {
+        statusCode: 200,
+        message: 'Company deleted successfully',
+        data: deletedCompany,
+      };
+    } catch (error) {
+      return {
+        statusCode: 500,
+        message: 'Internal server error',
+      };
+    }
   }
 }

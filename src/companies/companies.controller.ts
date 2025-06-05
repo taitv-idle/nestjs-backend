@@ -45,8 +45,9 @@ export class CompaniesController {
     return this.companiesService.update(id, updateCompanyDto, user);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.companiesService.remove(+id);
+  remove(@Param('id') id: string, @User() user: IUser) {
+    return this.companiesService.remove(id, user);
   }
 }
