@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { IUser } from 'src/users/user.interface';
+import { RegisterUserDto } from 'src/users/dto/create-user.dto';
 
 // Service xử lý logic xác thực
 @Injectable()
@@ -41,6 +42,36 @@ export class AuthService {
       name,
       email,
       role,
+    };
+  }
+
+  async register(registerUserDto: RegisterUserDto) {
+    // 1. Kiểm tra email đã tồn tại chưa
+    const existingUser = await this.usersService.findOneByUsername(
+      registerUserDto.email,
+    );
+    if (existingUser) {
+      throw new BadRequestException('Email already exists');
+    }
+
+    // 3. Tạo user mới với đủ trường (role mặc định là 'USER')
+    const userToCreate: any = {
+      ...registerUserDto,
+      role: 'USER',
+    };
+    // Nếu DTO có trường company thì giữ lại, nếu không thì không thêm vào
+    if (Object.prototype.hasOwnProperty.call(registerUserDto, 'company')) {
+      userToCreate.company = (registerUserDto as any).company;
+    } else {
+      delete userToCreate.company;
+    }
+
+    const newUser = await this.usersService.create(userToCreate);
+
+    // 4. Trả về _id và createAt (đúng tên trường trong schema)
+    return {
+      _id: newUser?._id,
+      createAt: newUser?.createAt,
     };
   }
 }

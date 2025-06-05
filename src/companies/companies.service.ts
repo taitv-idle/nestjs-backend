@@ -6,6 +6,7 @@ import { Company, CompanyDocument } from './schemas/company.schema';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
 import { IUser } from 'src/users/user.interface';
 import aqp from 'api-query-params';
+import { RegisterUserDto } from 'src/users/dto/create-user.dto';
 
 @Injectable()
 export class CompaniesService {
@@ -31,6 +32,7 @@ export class CompaniesService {
       throw new Error('Error creating company');
     }
   }
+
 
   async findAll(page: number, limit: number, qs: string) {
     const { filter, sort, projection, population } = aqp(qs);
