@@ -7,6 +7,7 @@ import { LocalStrategy } from './passport/local.strategy';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from './passport/jwt.strategy';
+import { AuthController } from './auth.controller';
 
 // Định nghĩa module AuthModule, cung cấp các dịch vụ xác thực
 @Module({
@@ -16,7 +17,8 @@ import { JwtStrategy } from './passport/jwt.strategy';
   imports: [
     UsersModule, // Module quản lý người dùng
     PassportModule, // Module hỗ trợ xác thực Passport
-    JwtModule.registerAsync({ // Đăng ký module JWT với cấu hình động
+    JwtModule.registerAsync({
+      // Đăng ký module JWT với cấu hình động
       imports: [ConfigModule], // Sử dụng ConfigModule để lấy biến môi trường
       useFactory: async (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_ACCESS_TOKEN'), // Lấy secret từ biến môi trường
@@ -29,5 +31,6 @@ import { JwtStrategy } from './passport/jwt.strategy';
   ],
   // Export AuthService để các module khác có thể sử dụng
   exports: [AuthService],
+  controllers: [AuthController],
 })
 export class AuthModule {}
