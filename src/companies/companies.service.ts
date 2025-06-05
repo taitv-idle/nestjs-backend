@@ -23,7 +23,10 @@ export class CompaniesService {
           email: user.email,
         },
       });
-      return company;
+      return {
+        message: 'Company created successfully',
+        data: company,
+      };
     } catch (error) {
       throw new Error('Error creating company');
     }

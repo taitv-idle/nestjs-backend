@@ -10,3 +10,7 @@ export const User = createParamDecorator(
     return request.user;
   },
 );
+
+export const RESPONSIVE_MESSAGE = 'response_message';
+export const ResponseMessage = (message: string) =>
+  SetMetadata(RESPONSIVE_MESSAGE, message);
