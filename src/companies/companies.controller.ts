@@ -14,12 +14,12 @@ import { UpdateCompanyDto } from './dto/update-company.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { User } from 'src/auth/decorator/customize';
 import { IUser } from 'src/users/user.interface';
-@Controller()
+@Controller('companies')
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Post('/companies')
+  @Post('')
   create(@Body() createCompanyDto: CreateCompanyDto, @User() user: IUser) {
     console.log('user: ', user);
     return this.companiesService.create(createCompanyDto, user);
@@ -35,9 +35,14 @@ export class CompaniesController {
     return this.companiesService.findOne(+id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCompanyDto: UpdateCompanyDto) {
-    return this.companiesService.update(+id, updateCompanyDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateCompanyDto: UpdateCompanyDto,
+    @User() user: IUser,
+  ) {
+    return this.companiesService.update(id, updateCompanyDto, user);
   }
 
   @Delete(':id')

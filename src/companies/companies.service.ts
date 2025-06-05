@@ -35,8 +35,31 @@ export class CompaniesService {
     return `This action returns a #${id} company`;
   }
 
-  update(id: number, updateCompanyDto: UpdateCompanyDto) {
-    return `This action updates a #${id} company`;
+  async update(id: string, updateCompanyDto: UpdateCompanyDto, user: IUser) {
+    try {
+      const company = await this.companyModel.findByIdAndUpdate(
+        id,
+        {
+          ...updateCompanyDto,
+          updatedBy: {
+            _id: user._id,
+            email: user.email,
+          },
+        },
+        { new: true },
+      );
+
+      if (!company) {
+        throw new Error('Company not found');
+      }
+
+      return company;
+    } catch {
+      return {
+        statusCode: 400,
+        message: 'Error updating company',
+      };
+    }
   }
 
   remove(id: number) {
