@@ -6,7 +6,6 @@ import { AuthService } from './auth/auth.service';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { Public } from './auth/decorator/customize';
 
-
 @Controller()
 export class AppController {
   constructor(
@@ -28,7 +27,7 @@ export class AppController {
     return this.authService.login(req.user);
   }
 
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   @Get('/profile')
   getProfile(@Request() req) {
     return req.user;
