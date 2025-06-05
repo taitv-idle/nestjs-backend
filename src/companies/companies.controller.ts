@@ -1,17 +1,28 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-
+import { User } from 'src/auth/decorator/customize';
+import { IUser } from 'src/users/user.interface';
 @Controller()
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
   @UseGuards(JwtAuthGuard)
   @Post('/companies')
-  create(@Body() createCompanyDto: CreateCompanyDto) {
-    return this.companiesService.create(createCompanyDto);
+  create(@Body() createCompanyDto: CreateCompanyDto, @User() user: IUser) {
+    console.log('user: ', user);
+    return this.companiesService.create(createCompanyDto, user);
   }
 
   @Get()
