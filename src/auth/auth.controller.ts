@@ -1,9 +1,7 @@
 import { Controller, Get, Post, UseGuards, Request, Body } from '@nestjs/common';
 import { LocalAuthGuard } from './local-auth.guard';
 import { AuthService } from './auth.service';
-import { JwtAuthGuard } from './jwt-auth.guard';
-import { Public, ResponseMessage, User } from './decorator/customize';
-import { IUser } from 'src/users/user.interface';
+import { Public, ResponseMessage } from './decorator/customize';
 import { RegisterUserDto } from 'src/users/dto/create-user.dto';
 
 @Controller('/auth')
