@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -20,20 +20,38 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     try {
+      // 1. Kiểm tra email tồn tại
       const existingUser = await this.userModel.findOne({
         email: createUserDto.email,
       });
       if (existingUser) {
-        throw new Error('Email already exists');
+        throw new BadRequestException('Email already exists');
       }
+
+      // 2. Validate role
+      const validRoles = ['USER', 'ADMIN', 'HR']; // Thêm các role hợp lệ
+      if (!validRoles.includes(createUserDto.role)) {
+        throw new BadRequestException('Invalid role');
+      }
+
+      // 3. Hash password
       const hashPassword = this.getHashPassword(createUserDto.password);
+
+      // 4. Tạo user mới và trả về kết quả không bao gồm password
       const newUser = await this.userModel.create({
         ...createUserDto,
         password: hashPassword,
       });
-      return newUser;
-    } catch {
-      throw new Error('Error creating user');
+
+      // 5. Query lại user vừa tạo nhưng loại bỏ password
+      const userResponse = await this.userModel.findById(newUser._id).select('-password');
+
+      return userResponse;
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Error creating user: ' + error.message);
     }
   }
 
@@ -43,9 +61,11 @@ export class UsersService {
 
   async findOne(id: string) {
     try {
-      const user = await this.userModel.findOne({
-        _id: id,
-      });
+      const user = await this.userModel
+        .findOne({
+          _id: id,
+        })
+        .select('-password');
       return user;
     } catch {
       return 'User not found';
@@ -99,6 +119,42 @@ export class UsersService {
       return 'User deleted successfully';
     } catch {
       return 'Error deleting user';
+    }
+  }
+
+  async register(registerUserDto: RegisterUserDto) {
+    try {
+      // 1. Kiểm tra email đã tồn tại chưa
+      const existingUser = await this.findOneByUsername(registerUserDto.email);
+      if (existingUser) {
+        throw new BadRequestException('Email already exists');
+      }
+
+      // 2. Tạo user mới với role mặc định là 'USER'
+      const userToCreate: any = {
+        ...registerUserDto,
+        role: 'USER',
+      };
+
+      // 3. Xử lý company field nếu có
+      if (Object.prototype.hasOwnProperty.call(registerUserDto, 'company')) {
+        userToCreate.company = (registerUserDto as any).company;
+      } else {
+        delete userToCreate.company;
+      }
+
+      const newUser = await this.create(userToCreate);
+
+      // 4. Trả về thông tin user đã tạo
+      return {
+        _id: newUser?._id,
+        createAt: newUser?.createAt,
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Error registering user: ' + error.message);
     }
   }
 }
