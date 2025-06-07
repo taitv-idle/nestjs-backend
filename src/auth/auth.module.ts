@@ -21,7 +21,7 @@ import { AuthController } from './auth.controller';
       // Đăng ký module JWT với cấu hình động
       imports: [ConfigModule], // Sử dụng ConfigModule để lấy biến môi trường
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_ACCESS_TOKEN'), // Lấy secret từ biến môi trường
+        secret: configService.get<string>('JWT_ACCESS_TOKEN_SECRET'), // Lấy secret từ biến môi trường
         signOptions: {
           expiresIn: configService.get<string>('JWT_ACCESS_EXPIRES'), // Lấy thời gian hết hạn token
         },

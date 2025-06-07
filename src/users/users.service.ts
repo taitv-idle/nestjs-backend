@@ -1,15 +1,20 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { CreateUserDto, RegisterUserDto } from './dto/create-user.dto';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
-import { User, UserDocument } from './schemas/user.schema';
+import { User as UserSchema, UserDocument } from './schemas/user.schema';
+import { User } from '../auth/decorator/customize';
 import { compareSync, genSaltSync, hashSync } from 'bcryptjs';
 import { SoftDeleteModel } from 'soft-delete-plugin-mongoose';
+import { IUser } from './user.interface';
+import mongoose from 'mongoose';
+import aqp from 'api-query-params';
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(User.name) private userModel: SoftDeleteModel<UserDocument>,
+    @InjectModel(UserSchema.name)
+    private userModel: SoftDeleteModel<UserDocument>,
   ) {}
 
   getHashPassword = (password: string) => {
@@ -46,18 +51,43 @@ export class UsersService {
       // 5. Trả về thông tin user (không bao gồm password)
       const userResponse = newUser.toObject();
       const { password, ...userWithoutPassword } = userResponse;
-      
+
       return userWithoutPassword;
     } catch (error: any) {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new BadRequestException('Error creating user: ' + (error?.message || 'Unknown error'));
+      throw new BadRequestException(
+        'Error creating user: ' + (error?.message || 'Unknown error'),
+      );
     }
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findAll(page: number, limit: number, qs: string) {
+    const { filter, sort, projection, population } = aqp(qs);
+    delete filter.page;
+    delete filter.limit;
+    const offset = (page - 1) * limit;
+    const defaultLimit = limit || 10;
+    const totalItems = await this.userModel.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / defaultLimit);
+    const result = await this.userModel
+      .find(filter)
+      .sort(sort as any)
+      .skip(offset)
+      .limit(defaultLimit)
+      .select('-password')
+      .populate(population);
+    return {
+      meta: {
+        currentPage: page,
+        itemCount: result.length,
+        itemsPerPage: limit,
+        totalPages,
+        totalItems,
+      },
+      result,
+    };
   }
 
   async findOne(id: string) {
@@ -91,12 +121,16 @@ export class UsersService {
     }
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto, user: IUser) {
     try {
       const updatedUser = await this.userModel.updateOne(
         { _id: id },
         {
           ...updateUserDto,
+          updatedBy: {
+            _id: user._id,
+            email: user.email,
+          },
         },
       );
 
@@ -110,16 +144,24 @@ export class UsersService {
     }
   }
 
-  async remove(id: string) {
+  async remove(id: string, @User() user: IUser) {
     try {
-      const deletedUser = await this.userModel.softDelete({ _id: id });
-      if (!deletedUser) {
-        return 'User not found';
+      // Kiểm tra xem user có tồn tại không
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return 'Invalid user ID';
       }
-
-      return 'User deleted successfully';
+      await this.userModel.updateOne(
+        { _id: id },
+        {
+          deletedBy: {
+            _id: user._id,
+            email: user.email,
+          },
+        },
+      );
+      return this.userModel.softDelete({ _id: id });
     } catch {
-      return 'Error deleting user';
+      throw new BadRequestException('Error deleting user');
     }
   }
 }

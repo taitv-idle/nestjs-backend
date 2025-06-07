@@ -3,6 +3,7 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { IUser } from 'src/users/user.interface';
 import { RegisterUserDto } from 'src/users/dto/create-user.dto';
+import { ConfigService } from '@nestjs/config';
 
 // Service xử lý logic xác thực
 @Injectable()
@@ -11,6 +12,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
   // Hàm kiểm tra thông tin đăng nhập của người dùng
@@ -36,12 +38,17 @@ export class AuthService {
       email,
       role,
     };
+
+    const refreshToken = this.createRefreshToken(payload);
     return {
       access_token: this.jwtService.sign(payload),
-      _id,
-      name,
-      email,
-      role,
+      refresh_token: refreshToken,
+      user: {
+        _id,
+        name,
+        email,
+        role,
+      },
     };
   }
 
@@ -66,7 +73,6 @@ export class AuthService {
 
       // 3. Trả về thông tin user đã tạo (không bao gồm các trường thời gian)
       return newUser;
-      console.log(newUser);
     } catch (error: any) {
       if (error instanceof BadRequestException) {
         throw error;
@@ -75,4 +81,12 @@ export class AuthService {
       throw new BadRequestException('Error registering user: ' + errorMessage);
     }
   }
+
+  createRefreshToken = (payload) => {
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
+      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES'),
+    });
+    return refreshToken;
+  };
 }
