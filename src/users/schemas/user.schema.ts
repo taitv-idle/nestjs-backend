@@ -56,12 +56,6 @@ export class User {
     email: string;
   };
 
-  @Prop()
-  createAt: Date;
-
-  @Prop()
-  updateAt: Date;
-
   @Prop({ default: false })
   isDeleted: boolean;
 

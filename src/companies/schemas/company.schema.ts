@@ -35,12 +35,6 @@ export class Company {
     email: string;
   };
 
-  @Prop()
-  createAt: Date;
-
-  @Prop()
-  updateAt: Date;
-
   @Prop({ default: false })
   isDeleted: boolean;
 
