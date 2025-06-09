@@ -25,10 +25,11 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     preflightContinue: false,
     optionsSuccessStatus: 204,
+    credentials: true, // Cho phép gửi cookie từ client
   });
 
   //config version api
-  // app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api');
   app.enableVersioning({
     type: VersioningType.URI,
     // prefix: 'api/v',

@@ -54,7 +54,7 @@ export class AuthService {
     // Set refresh token vào cookie
     response.cookie('refresh_token', refreshToken, {
       httpOnly: true,
-      maxAge: ms(refreshExpires as StringValue) * 1000, // Chuyển đổi thời gian hết hạn sang milliseconds
+      maxAge: ms(refreshExpires as StringValue), // Chuyển đổi thời gian hết hạn sang milliseconds
     });
     // Trả về access token và thông tin người dùng
     return {
@@ -133,12 +133,11 @@ export class AuthService {
       const refreshExpires = this.configService.get<string>(
         'JWT_REFRESH_EXPIRES',
       );
-      console.log(refreshExpires);
 
-      // Set refresh token vào cookie
-      response.cookie('refresh_token', refreshToken, {
+      // Set refresh token vào cookie (fixed: use newRefreshToken instead of old refreshToken)
+      response.cookie('refresh_token', newRefreshToken, {
         httpOnly: true,
-        maxAge: ms(refreshExpires as StringValue) * 1000, // Chuyển đổi thời gian hết hạn sang milliseconds
+        maxAge: ms(refreshExpires as StringValue), // Chuyển đổi thời gian hết hạn sang milliseconds
       });
       // Trả về access token và thông tin người dùng
       return {
