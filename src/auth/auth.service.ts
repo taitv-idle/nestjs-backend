@@ -54,7 +54,7 @@ export class AuthService {
     // Set refresh token vào cookie
     response.cookie('refresh_token', refreshToken, {
       httpOnly: true,
-      maxAge: ms(refreshExpires as StringValue), // Chuyển đổi thời gian hết hạn sang milliseconds
+      maxAge: ms(refreshExpires as StringValue) * 1000, // Chuyển đổi thời gian hết hạn sang milliseconds
     });
     // Trả về access token và thông tin người dùng
     return {
@@ -93,8 +93,7 @@ export class AuthService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      const errorMessage = error?.message || 'Unknown error';
-      throw new BadRequestException('Error registering user: ' + errorMessage);
+      throw new BadRequestException('Error registering user');
     }
   }
 
@@ -104,5 +103,57 @@ export class AuthService {
       expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES'),
     });
     return refreshToken;
+  };
+
+  prosessRefreshToken = async (refreshToken: string, response: Response) => {
+    try {
+      this.jwtService.verify(refreshToken, {
+        secret: this.configService.get<string>('JWT_REFRESH_TOKEN_SECRET'),
+      });
+      const user = await this.usersService.findUserByToken(refreshToken);
+      if (!user) {
+        throw new BadRequestException('Refresh token không hợp lệ');
+      }
+      // Tạo access token mới
+      const { _id, name, email, role } = user;
+      const payload = {
+        sub: 'token refresh',
+        iss: 'from server',
+        _id,
+        name,
+        email,
+        role,
+      };
+
+      const newRefreshToken = this.createRefreshToken(payload);
+      //update refresh token to user
+      await this.usersService.updateUserToken(newRefreshToken, _id.toString());
+
+      // Lấy thời gian hết hạn từ biến môi trường
+      const refreshExpires = this.configService.get<string>(
+        'JWT_REFRESH_EXPIRES',
+      );
+      console.log(refreshExpires);
+
+      // Set refresh token vào cookie
+      response.cookie('refresh_token', refreshToken, {
+        httpOnly: true,
+        maxAge: ms(refreshExpires as StringValue) * 1000, // Chuyển đổi thời gian hết hạn sang milliseconds
+      });
+      // Trả về access token và thông tin người dùng
+      return {
+        access_token: this.jwtService.sign(payload),
+        user: {
+          _id,
+          name,
+          email,
+          role,
+        },
+      };
+    } catch {
+      throw new BadRequestException(
+        'Token het hạn hoặc không hợp lệ. Vui lòng đăng nhập lại',
+      );
+    }
   };
 }
