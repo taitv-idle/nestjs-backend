@@ -164,4 +164,11 @@ export class UsersService {
       throw new BadRequestException('Error deleting user');
     }
   }
+
+  updateUserToken = async (refreshToken: string, _id: string) => {
+    await this.userModel.updateOne(
+      { _id },
+      { refreshToken: refreshToken },
+    );
+  };
 }

@@ -4,6 +4,8 @@ import { JwtService } from '@nestjs/jwt';
 import { IUser } from 'src/users/user.interface';
 import { RegisterUserDto } from 'src/users/dto/create-user.dto';
 import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
+import ms, { StringValue } from 'ms';
 
 // Service xử lý logic xác thực
 @Injectable()
@@ -28,7 +30,7 @@ export class AuthService {
   }
 
   // Hàm đăng nhập, trả về access_token cho người dùng
-  async login(user: IUser) {
+  async login(user: IUser, response: Response) {
     const { _id, name, email, role } = user;
     const payload = {
       sub: 'token login',
@@ -40,9 +42,23 @@ export class AuthService {
     };
 
     const refreshToken = this.createRefreshToken(payload);
+    //update refresh token to user
+    await this.usersService.updateUserToken(refreshToken, _id);
+
+    // Lấy thời gian hết hạn từ biến môi trường
+    const refreshExpires = this.configService.get<string>(
+      'JWT_REFRESH_EXPIRES',
+    );
+    console.log(refreshExpires);
+
+    // Set refresh token vào cookie
+    response.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      maxAge: ms(refreshExpires as StringValue), // Chuyển đổi thời gian hết hạn sang milliseconds
+    });
+    // Trả về access token và thông tin người dùng
     return {
       access_token: this.jwtService.sign(payload),
-      refresh_token: refreshToken,
       user: {
         _id,
         name,
