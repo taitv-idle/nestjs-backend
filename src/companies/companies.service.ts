@@ -34,11 +34,11 @@ export class CompaniesService {
   }
 
 
-  async findAll(page: number, limit: number, qs: string) {
+  async findAll(currentPage: number, limit: number, qs: string) {
     const { filter, sort, projection, population } = aqp(qs);
-    delete filter.page;
-    delete filter.limit;
-    const offset = (page - 1) * limit;
+    delete filter.current;
+    delete filter.pageSize;
+    const offset = (currentPage - 1) * limit;
     const defaultLimit = limit || 10;
     const totalItems = await this.companyModel.countDocuments(filter);
     const totalPages = Math.ceil(totalItems / defaultLimit);
@@ -51,7 +51,7 @@ export class CompaniesService {
       .populate(population);
     return {
       meta: {
-        currentPage: page,
+        currentPage: currentPage,
         itemCount: result.length,
         itemsPerPage: limit,
         totalPages,

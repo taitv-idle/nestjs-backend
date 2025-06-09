@@ -164,6 +164,6 @@ export class AuthService {
       sameSite: 'strict', // Chỉ gửi cookie cho cùng một trang web
     });
     // update refresh token khỏi cơ sở dữ liệu
-    await this.usersService.updateUserToken('', user._id.toString());
+    await this.usersService.updateUserToken('', user._id);
   };
 }

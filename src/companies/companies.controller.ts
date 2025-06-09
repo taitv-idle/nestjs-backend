@@ -29,11 +29,11 @@ export class CompaniesController {
   @Get()
   @ResponseMessage('Get list company successfully')
   findAll(
-    @Query('page') page: string,
-    @Query('limit') limit: string,
+    @Query('current') currentPage: string,
+    @Query('pageSize') limit: string,
     @Query() qs: string,
   ) {
-    return this.companiesService.findAll(+page, +limit, qs);
+    return this.companiesService.findAll(+currentPage, +limit, qs);
   }
 
   @Get(':id')
