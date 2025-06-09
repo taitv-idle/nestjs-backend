@@ -156,4 +156,14 @@ export class AuthService {
       );
     }
   };
+
+  logout = async (response: Response, user: IUser) => {
+    // Xoá cookie refresh_token
+    response.clearCookie('refresh_token', {
+      httpOnly: true,
+      sameSite: 'strict', // Chỉ gửi cookie cho cùng một trang web
+    });
+    // update refresh token khỏi cơ sở dữ liệu
+    await this.usersService.updateUserToken('', user._id.toString());
+  };
 }

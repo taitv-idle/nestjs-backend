@@ -6,6 +6,7 @@ import {
   Body,
   Res,
   Get,
+  BadRequestException,
 } from '@nestjs/common';
 import { LocalAuthGuard } from './local-auth.guard';
 import { AuthService } from './auth.service';
@@ -48,5 +49,14 @@ export class AuthController {
   ) {
     const refreshToken = request.cookies['refresh_token'];
     return this.authService.prosessRefreshToken(refreshToken, response);
+  }
+
+  @Post('/logout')
+  @ResponseMessage('Logout user')
+  handleLogout(
+    @Res({ passthrough: true }) response: Response,
+    @User() user: IUser,
+  ) {
+    return this.authService.logout(response, user);
   }
 }
